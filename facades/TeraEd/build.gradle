@@ -19,7 +19,7 @@ task editor(type:JavaExec) {
 
     // Dependencies: natives + all modules & the PC facade itself (which will trigger the engine)
     dependsOn rootProject.extractNatives
-    dependsOn rootProject.moduleClasses
+    // dependsOn rootProject.moduleClasses // TODO: Review?
     dependsOn classes
 
     // Run arguments

@@ -1,0 +1,43 @@
+// This file is the entry point for Gradle's build logic for modules (subprojects.gradle just sets up project structure)
+
+// This buildscript block is needed for some plugins to work, even if they are applied deeper in via apply from: blocks
+// TODO: Switch to the new Gradle plugin approach when it works in subproject blocks (beyond Gradle 3.3 sometime)
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        // Needed at this level for modules in Kotlin
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.6"
+        
+        // Needed for our deep dark Java wizardry
+        //classpath 'org.reflections:reflections:0.9.10'
+        //classpath 'dom4j:dom4j:1.6.1'
+    }
+}
+
+import groovy.json.JsonSlurper
+
+// We need to prepare the build logic for each module so we use a subprojects block to make this execute for each
+subprojects {
+
+    // Parse out the language selection from module.txt
+    def moduleFile = file('module.txt')
+    JsonSlurper slurper = new JsonSlurper()
+    def moduleConfig = slurper.parseText(moduleFile.text)
+
+    // When we know the language we apply the appropriate language-specific wrapper for build logic
+    if (moduleConfig.language == "scala") {
+        println "Oh hey, a Scala module. Using its build"
+        apply from: '../scala.gradle'
+    } else if (moduleConfig.language == "kotlin") {
+        println "Oh hey, a Kotlin module. Using its build"
+        // TODO: This satisfies Kotlin compilation in a module using it. Still need to guarantee a dependency on KotlinLib to get the runtime jar (I think?)
+        // So during Gradling for a language specific module insert condition: If KotlinLib then include the jar. If not then validate KotlinLib dep in module.txt
+        apply from: '../kotlin.gradle'
+    } else {
+        println "Boring old Java module"
+        apply from: '../java.gradle'
+    }
+}

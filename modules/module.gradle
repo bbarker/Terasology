@@ -1,54 +1,19 @@
-// Simple build file for modules - the one under the Core module is the template, will be copied as needed to modules
-
-// Grab all the common stuff like plugins to use, artifact repositories, code analysis config, Artifactory settings, Git magic
-apply from: "$rootDir/config/gradle/artifactory.gradle"
+// This file holds language-generic Gradle stuff for modules. It is meant to be included by the language specific Gradle files
 
 import groovy.json.JsonSlurper
-import java.text.SimpleDateFormat;
 
 // Git plugin details at https://github.com/ajoberstar/gradle-git
 import org.ajoberstar.gradle.git.tasks.*
+
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
 
-// Dependencies needed for what our Gradle scripts themselves use. It cannot be included via an external Gradle file :-(
-buildscript {
-    repositories {
-        // External libs - jcenter is Bintray and is supposed to be a superset of Maven Central, but do both just in case
-        jcenter()
-        mavenCentral()
-    }
-
-    dependencies {
-        // Artifactory plugin
-        classpath(group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: '4.0.0')
-
-        // Git plugin for Gradle
-        classpath 'org.ajoberstar:gradle-git:0.6.3'
-
-        // Needed for caching reflected data during builds
-        classpath 'org.reflections:reflections:0.9.10'
-        classpath 'dom4j:dom4j:1.6.1'
-    }
-}
-
-ext {
-    // Read environment variables, including variables passed by jenkins continuous integration server
-    env = System.getenv()
-}
-
 def moduleDepends = [];
 def moduleFile = file('module.txt')
 
-// The module file should always exist if the module was correctly created or cloned using Gradle
-if (!moduleFile.exists()) {
-    println "Y U NO EXIST MODULE.TXT!"
-    throw new GradleException("Failed to find module.txt for " + project.name)
-}
-
-//println "Scanning for dependencies in module.txt for " + project.name
+println "Scanning for dependencies in module.txt for " + project.name
 def slurper = new JsonSlurper()
 def moduleConfig = slurper.parseText(moduleFile.text)
 for (dependency in moduleConfig.dependencies) {
@@ -56,6 +21,7 @@ for (dependency in moduleConfig.dependencies) {
         moduleDepends += dependency.id
     }
 }
+println "Dependencies: $moduleDepends"
 
 // Gradle uses the magic version variable when creating the jar name (unless explicitly set somewhere else I guess)
 version = moduleConfig.version
@@ -65,9 +31,29 @@ group = 'org.terasology.modules'
 
 println "Version for $project.name loaded as $version for group $group"
 
-// TODO: Remove when we don't need to rely on snapshots. Needed here for solo builds in Jenkins
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+ext {
+    // The base set of directories potentially needed in a module. Language Gradle files add their unique extras
+    moduleSkeletonDirs = ['assets',
+                          'assets/animations',
+                          'assets/atlas',
+                          'assets/behaviors',
+                          'assets/blocks',
+                          'assets/blockSounds',
+                          'assets/blockTiles',
+                          'assets/fonts',
+                          'assets/materials',
+                          'assets/mesh',
+                          'assets/music',
+                          'assets/prefabs',
+                          'assets/shaders',
+                          'assets/shapes',
+                          'assets/skeletalMesh',
+                          'assets/skins',
+                          'assets/sounds',
+                          'assets/textures',
+                          'assets/ui',
+                          'overrides',
+                          'deltas']
 }
 
 // Set dependencies. Note that the dependency information from module.txt is used for other Terasology modules
@@ -165,42 +151,6 @@ dependencies {
     }
 }
 
-// Change the output dir of each module
-sourceSets {
-    main {
-        java {
-            output.classesDir 'build/classes'
-        }
-    }
-}
-
-// Generate the module directory structure if missing
-task createSkeleton() {
-    mkdir('assets')
-    mkdir('assets/animations')
-    mkdir('assets/atlas')
-    mkdir('assets/behaviors')
-    mkdir('assets/blocks')
-    mkdir('assets/blockSounds')
-    mkdir('assets/blockTiles')
-    mkdir('assets/fonts')
-    mkdir('assets/materials')
-    mkdir('assets/mesh')
-    mkdir('assets/music')
-    mkdir('assets/prefabs')
-    mkdir('assets/shaders')
-    mkdir('assets/shapes')
-    mkdir('assets/skeletalMesh')
-    mkdir('assets/skins')
-    mkdir('assets/sounds')
-    mkdir('assets/textures')
-    mkdir('assets/ui')
-    mkdir('overrides')
-    mkdir('deltas')
-    mkdir('src/main/java')
-    mkdir('src/test/java')
-}
-
 task cacheReflections {
     description = 'Caches reflection output to make regular startup faster. May go stale and need cleanup at times.'
     // TODO: The extra "org" qualifier excludes test classes otherwise sucked up in Jenkins, causing issues. Redo later
@@ -239,43 +189,8 @@ task syncDeltas(type: Sync) {
     into 'build/classes/deltas'
 }
 
-// Instructions for packaging a jar file - is a manifest even needed for modules?
-jar {
-    // Make sure the assets directory is included
-    dependsOn cacheReflections
-    dependsOn syncAssets
-    dependsOn syncOverrides
-    dependsOn syncDeltas
-
-    // Jarring needs to copy module.txt and all the assets into the output
-    doFirst {
-        copy {
-            from 'module.txt'
-            into 'build/classes'
-        }
-    }
-}
-
-jar.finalizedBy cleanReflections
-
-// Prep an IntelliJ module for the Terasology module - yes, might want to read that twice :D
-idea {
-    module {
-        // Change around the output a bit
-        inheritOutputDirs = false
-        outputDir = file('build/classes')
-        testOutputDir = file('build/testClasses')
-        downloadSources = true
-    }
-}
-
-// For Eclipse just make sure the classpath is right
-eclipse {
-    classpath {
-        defaultOutputDir = file('build/classes')
-    }
-}
-
+/*
+TODO: Review - not sure if working well. Maybe a better way to do it via standalone Groovy utility script
 // Utility task to update the module (except Core) via Git - not tested with local changes present, may cause trouble
 task (updateModule, type: GitPull)  {
     description = 'Updates source for the module from its home (most likely GitHub)'
@@ -299,3 +214,4 @@ task (updateModule, type: GitPull)  {
         println "Pulling updates via Git to " + getRepoDir() + ", if dependencies change run Gradle again (like 'gradlew idea')"
     }
 }
+*/

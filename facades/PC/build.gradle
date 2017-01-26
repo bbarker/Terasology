@@ -83,7 +83,7 @@ task game(type:JavaExec) {
 
     // Dependencies: natives + all modules & the PC facade itself (which will trigger the engine)
     dependsOn rootProject.extractNatives
-    dependsOn rootProject.moduleClasses
+    // dependsOn rootProject.moduleClasses // TODO: Review?
     dependsOn classes
 
     // Run arguments
@@ -104,7 +104,7 @@ task debug(type:JavaExec) {
 
     // Dependencies: natives + all modules & the PC facade itself (which will trigger the engine)
     dependsOn rootProject.extractNatives
-    dependsOn rootProject.moduleClasses
+    // dependsOn rootProject.moduleClasses // TODO: Review?
     dependsOn classes
 
     // Run arguments
@@ -182,7 +182,7 @@ task server(type:JavaExec) {
 
     // Dependencies: natives + all modules & the PC facade itself (which will trigger the engine)
     dependsOn rootProject.extractNatives
-    dependsOn rootProject.moduleClasses
+    // dependsOn rootProject.moduleClasses // TODO: Review?
     dependsOn classes
     dependsOn setupServerConfig
     dependsOn setupServerModules
@@ -251,26 +251,20 @@ task distApp (type: Sync) {
     }
 }
 
-// This is a TEMPORARY tweak to make "changing" dependencies always ('0') check for newer snapshots available
-// TODO: Remove this when versioning and promotion works fully, then we shouldn't care about snapshots normally anyway
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}
-
 // Distribute modules - only grabs Core in Jenkins but locally will grab any present. "Distros" now handle Jenkins packs
 task distModules (type: Sync) {
     description = "Prepares local modules for distribution"
     dependsOn distApp
-    dependsOn rootProject.moduleJars
-
+    // dependsOn rootProject.moduleJars // TODO: Review. Doesn't seem to work anymore anyway
+/*
     // So this is probably a hack, but it works ;-) It does not work if it is in distApp, default "into" quirk ?
     into("$distsDir/app/modules")
     rootProject.terasologyModules().each {
         from "$rootDir/modules/${it.name}/build/libs"
         include "*.jar"
     }
+    */
 }
-
 task distPCZip (type: Zip) {
     dependsOn distApp
     dependsOn distModules

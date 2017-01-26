@@ -1,0 +1,82 @@
+// This Gradle file is an include file for modules wanting to run in plain old Java
+
+// Grab all the common stuff like plugins to use, artifact repositories, code analysis config, Artifactory settings, Git magic
+apply from: "$rootDir/config/gradle/artifactory.gradle"
+
+// Grab the common stuff specific to modules builds (allows it to live in a module specific but language agnostic file)
+apply from: "../module.gradle"
+
+// Dependencies needed for what our Gradle scripts themselves use. It cannot be included via an external Gradle file :-(
+buildscript {
+    repositories {
+        // External libs - jcenter is Bintray and is supposed to be a superset of Maven Central, but do both just in case
+        jcenter()
+    }
+
+    dependencies {
+        // Artifactory plugin
+        classpath(group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: '4.0.0')
+
+        // Git plugin for Gradle
+        classpath 'org.ajoberstar:gradle-git:0.6.3'
+
+        // Needed for caching reflected data during builds
+        classpath 'org.reflections:reflections:0.9.10'
+        classpath 'dom4j:dom4j:1.6.1'
+    }
+}
+
+ext {
+    // For the Java modules we add these two additional dirs to the module directory structure
+    moduleSkeletonDirs << 'src/main/java' << 'src/test/java'
+}
+
+sourceSets {
+    main {
+        java {
+            output.classesDir 'build/classes'
+        }
+    }
+}
+
+// Generate the module directory structure if missing (by declaring the task here we also get the language specific extras)
+task createSkeleton() {
+    moduleSkeletonDirs.each {
+        mkdir it
+    }
+}
+
+jar {
+    // Make sure the assets directory is included
+    dependsOn cacheReflections
+    dependsOn syncAssets
+    dependsOn syncOverrides
+    dependsOn syncDeltas
+
+    // Jarring needs to copy module.txt and all the assets into the output
+    doFirst {
+        copy {
+            from 'module.txt'
+            into 'build/classes'
+        }
+    }
+}
+jar.finalizedBy cleanReflections
+
+// Prep an IntelliJ module for the Terasology module - yes, might want to read that twice :D
+idea {
+    module {
+        // Change around the output a bit
+        inheritOutputDirs = false
+        outputDir = file('build/classes')
+        testOutputDir = file('build/testClasses')
+        downloadSources = true
+    }
+}
+
+// For Eclipse just make sure the classpath is right
+eclipse {
+    classpath {
+        defaultOutputDir = file('build/classes')
+    }
+}

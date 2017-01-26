@@ -19,7 +19,7 @@ extensions
 !/modules/Core
 !/modules/CoreSampleGameplay
 !/modules/BuilderSampleGameplay
-!/modules/subprojects.gradle
+!/modules/*.gradle
 /meta/*
 !/meta/subprojects.gradle
 /libs/*

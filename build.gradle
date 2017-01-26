@@ -135,22 +135,10 @@ def terasologyModules() {
     subprojects.findAll {it.parent.name == 'modules'}
 }
 
-// Helper that replaces the build.gradle under every module with a fresh copy from the Core module
-task refreshModuleGradle << {
-    File replacementGradle = new File(rootDir, 'modules/Core/build.gradle')
-    terasologyModules().each {
-        if (it.name != 'Core') {
-            File targetFile = new File(rootDir, "modules/" + it.name + "/build.gradle")
-            targetFile.delete()
-            targetFile << replacementGradle.text
-        }
-    }
-}
-
 // Helpers that do magic things after having dependencies attached below
-task moduleClasses
-task moduleJars
-
+//task moduleClasses
+//task moduleJars
+/*
 // This magically makes everything work - without this the desired module projects returned have no tasks :-(
 gradle.projectsEvaluated {
     // Note how "classes" may indirectly trigger "jar" for module dependencies of modules (module compile dependency)
@@ -159,9 +147,10 @@ gradle.projectsEvaluated {
     // This makes it work for a full jar task
     moduleJars.dependsOn(terasologyModules().jar)
 }
-
+*/
 // This is a TEMPORARY tweak to make "changing" dependencies always ('0') check for newer snapshots available
 // TODO: Remove this when versioning and promotion works fully, then we shouldn't care about snapshots normally anyway
+// For some reason this can stay here, yet had to be removed from everywhere else for Gradle 3.3
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }

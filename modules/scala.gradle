@@ -1,0 +1,82 @@
+// This Gradle file is an include file for modules wanting to run in Scala
+apply plugin: "scala"
+
+// Grab all the common stuff like plugins to use, artifact repositories, code analysis config, etc
+apply from: "$rootDir/config/gradle/artifactory.gradle"
+
+// Grab the module specific build logic that's language agnostic
+apply from: "../module.gradle"
+
+// Dependencies needed for what our Gradle scripts themselves use. It cannot be included via an external Gradle file :-(
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        // Artifactory plugin
+        classpath(group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: '4.0.0')
+
+        // Needed for caching reflected data during builds
+        classpath 'org.reflections:reflections:0.9.10'
+        classpath 'dom4j:dom4j:1.6.1'
+    }
+}
+
+ext {
+    // For the Scala modules we add these two additional dirs to the module directory structure
+    moduleSkeletonDirs << 'src/main/scala' << 'src/test/scala'
+}
+
+sourceSets {
+    main {
+        scala {
+            output.classesDir 'build/classes'
+        }
+    }
+}
+
+configurations {
+    scalaConf.extendsFrom compile
+    scalaEmbedded
+}
+
+dependencies {
+    // Since the main compile and compileTest configs are defined in the generic module.gradle we can't modify them here - so extend instead
+    scalaConf group: 'org.scala-lang', name: 'scala-reflect', version: '2.11.7'
+    scalaConf group: 'org.scala-lang', name: 'scala-compiler', version: '2.11.7'
+
+    // To make this module bundle Kotlin's runtime jar we put it in a separate config by itself
+    scalaEmbedded group: 'org.scala-lang', name: 'scala-library', version: '2.11.7'
+}
+
+// Generate the module directory structure if missing (by declaring the task here we also get the language specific extras)
+task createSkeleton() {
+    moduleSkeletonDirs.each {
+        mkdir it
+    }
+}
+
+// TODO: Only embed Scala for the ScalaLib module - otherwise rely on a dependency declared on ScalaLib
+jar {
+    // Make sure the assets directory is included
+    dependsOn cacheReflections
+    dependsOn syncAssets
+    dependsOn syncOverrides
+    dependsOn syncDeltas
+
+    // Jarring needs to copy module.txt and all the assets into the output
+    doFirst {
+        copy {
+            from 'module.txt'
+            from configurations.scalaEmbedded
+            into 'build/classes'
+        }
+    }
+}
+jar.finalizedBy cleanReflections
+
+// Needed for Scala for some reason - Kotlin seems to pick up on the custom configurations on its own but here we have to be explicit
+tasks.withType(ScalaCompile) {
+    scalaClasspath = configurations.scalaConf
+}

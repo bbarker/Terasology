@@ -1,0 +1,86 @@
+// This Gradle file is an include file for modules wanting to run in Kotlin
+apply plugin: "kotlin"
+
+// Grab all the common stuff like plugins to use, artifact repositories, code analysis config, etc
+apply from: "$rootDir/config/gradle/artifactory.gradle"
+
+// Grab the module specific build logic that's language agnostic
+apply from: "../module.gradle"
+
+// Dependencies needed for what our Gradle scripts themselves use. It cannot be included via an external Gradle file :-(
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        // Artifactory plugin
+        classpath(group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: '4.0.0')
+
+        // Needed for caching reflected data during builds
+        classpath 'org.reflections:reflections:0.9.10'
+        classpath 'dom4j:dom4j:1.6.1'
+
+        // Needed for modules in Kotlin
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.6"
+    }
+}
+
+ext {
+    // For the Kotlin modules we add these two additional dirs to the module directory structure
+    moduleSkeletonDirs << 'src/main/kotlin' << 'src/test/kotlin'
+}
+
+sourceSets {
+    main {
+        kotlin {
+            output.classesDir 'build/classes'
+        }
+    }
+}
+
+configurations {
+    kotlinConf.extendsFrom compile
+    kotlinTestConf.extendsFrom testCompile
+    kotlinEmbedded
+}
+
+dependencies {
+    // Since the main compile and compileTest configs are defined in the generic module.gradle we can't modify them here - so extend instead
+    kotlinConf group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: '1.0.6'
+    kotlinConf group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: '1.0.6'
+
+    kotlinTestConf group: 'org.jetbrains.kotlin', name: 'kotlin-test:1.0.6'
+    kotlinTestConf group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit:1.0.6'
+
+    // To make this module bundle Kotlin's runtime jar we put it in a separate config by itself
+    kotlinEmbedded group: 'org.jetbrains.kotlin', name: 'kotlin-runtime', version: '1.0.6'
+}
+
+
+
+// Generate the module directory structure if missing (by declaring the task here we also get the language specific extras)
+task createSkeleton() {
+    moduleSkeletonDirs.each {
+        mkdir it
+    }
+}
+
+// TODO: Only embed Kotlin for the KotlinLib module - otherwise rely on a dependency declared on KotlinLib
+jar {
+    // Make sure the assets directory is included
+    dependsOn cacheReflections
+    dependsOn syncAssets
+    dependsOn syncOverrides
+    dependsOn syncDeltas
+
+    // Jarring needs to copy module.txt and all the assets into the output
+    doFirst {
+        copy {
+            from 'module.txt'
+            from configurations.kotlinEmbedded
+            into 'build/classes'
+        }
+    }
+}
+jar.finalizedBy cleanReflections
