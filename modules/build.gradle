@@ -10,10 +10,6 @@ buildscript {
     dependencies {
         // Needed at this level for modules in Kotlin
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.6"
-        
-        // Needed for our deep dark Java wizardry
-        //classpath 'org.reflections:reflections:0.9.10'
-        //classpath 'dom4j:dom4j:1.6.1'
     }
 }
 
