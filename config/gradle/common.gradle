@@ -1,8 +1,6 @@
 // This include file is meant for each Java project/module and contains setup for artifact repos, code analysis, etc
 
 apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
 apply plugin: 'project-report'
 apply plugin: 'checkstyle'
 apply plugin: 'pmd'

@@ -283,28 +283,3 @@ task distForLauncher (type: Sync) {
         }
     }
 }
-
-// Prep an IntelliJ module for the facade
-idea {
-    module {
-        // Change around the output a bit
-        inheritOutputDirs = false
-        outputDir = file('build/classes')
-        testOutputDir = file('build/testClasses')
-    }
-}
-
-task copyEclipseLauncher(type: Copy) {
-    from "$rootDir/config/eclipse"
-    into projectDir
-    include("Terasology.launch")
-}
-
-tasks.eclipse {
-    dependsOn copyEclipseLauncher
-    dependsOn rootProject.extractNatives
-}
-
-cleanEclipse.doLast {
-    new File(projectDir, "Terasology.launch").delete()
-}

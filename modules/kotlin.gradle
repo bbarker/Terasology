@@ -54,10 +54,11 @@ dependencies {
     kotlinTestConf group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit:1.0.6'
 
     // To make this module bundle Kotlin's runtime jar we put it in a separate config by itself
+    // TODO: As noted below as well this could for space reasons only be done for the KotlinLib module
+    // Could also consider skipping the KotlinLib dependency set in module.txt for others (the lang field forces it)
+    // In that case we may need to keep in mind the versioning of Kotlin - should modules be allowed to pick?
     kotlinEmbedded group: 'org.jetbrains.kotlin', name: 'kotlin-runtime', version: '1.0.6'
 }
-
-
 
 // Generate the module directory structure if missing (by declaring the task here we also get the language specific extras)
 task createSkeleton() {

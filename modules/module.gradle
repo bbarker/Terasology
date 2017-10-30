@@ -2,9 +2,6 @@
 
 import groovy.json.JsonSlurper
 
-// Git plugin details at https://github.com/ajoberstar/gradle-git
-import org.ajoberstar.gradle.git.tasks.*
-
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -41,6 +38,7 @@ ext {
                           'assets/blockSounds',
                           'assets/blockTiles',
                           'assets/fonts',
+                          'assets/i18n',
                           'assets/materials',
                           'assets/mesh',
                           'assets/music',
@@ -58,6 +56,10 @@ ext {
 
 // Set dependencies. Note that the dependency information from module.txt is used for other Terasology modules
 dependencies {
+    // TODO: Add a new Gradle plugin that itself is responsible for scanning module.txt (actually module.info.json or so)
+    // It should contain a method that can be triggered here that will apply the appropriate dependencies for the given module
+    // Ideally it could also handle the source vs binary plus outputting nice build info
+
     // Check to see if this module is not the root Gradle project - if so we are in a multi-project workspace
     if (project.name != project(':').name) {
         println "\nProcessing module '$project.name' in a multi-project workspace"
@@ -99,7 +101,10 @@ dependencies {
         }
 
         // This step resolves artifacts early, after which project config CANNOT be altered again!
-        configurations.compile.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
+         //TODO: This is what causes the nested task slowdown, due to the resolve at config time issue
+        //configurations.compile.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
+        // TODO: This updated version seems to do the trick without a slowdown! Hunt down any other usage like the old one
+        configurations.compile.incoming.afterResolve { ResolvedArtifact artifact ->
             def id = artifact.moduleVersion.id
 
             // Check for any needed module dependencies on other modules that we need at runtime
@@ -141,7 +146,9 @@ dependencies {
         // TODO: parse and apply external lib dependencies if any are present
         // TODO: Consider / keep an eye on whether resolving artifacts early at this point causes any trouble (is only for logging)
         // This step resolves artifacts (both compile & testCompile) and prints out some interesting versions
-        configurations.testCompile.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
+
+        //configurations.testCompile.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
+        configurations.testCompile.incoming.afterResolve { ResolvedArtifact artifact -> // Fixed version
             def id = artifact.moduleVersion.id
             // Print out module (and engine stuff) dependencies and the exact versions they resolved at
             if (id.group.startsWith('org.terasology')) {
@@ -188,30 +195,3 @@ task syncDeltas(type: Sync) {
     from 'deltas'
     into 'build/classes/deltas'
 }
-
-/*
-TODO: Review - not sure if working well. Maybe a better way to do it via standalone Groovy utility script
-// Utility task to update the module (except Core) via Git - not tested with local changes present, may cause trouble
-task (updateModule, type: GitPull)  {
-    description = 'Updates source for the module from its home (most likely GitHub)'
-
-    // Base whether the task executes on two things
-    // 1 - we actually asked for it ("gradlew updateModule") - otherwise we don't want it to run TODO: Test for abbreviations?
-    // 2 - this is not the Core module, which lives with the engine and needs no updates
-    boolean enabled = "updateModule" in project.gradle.startParameter.taskNames && !project.name.equals("Core")
-    // TODO: Used to cheat with declaring tasks using << but that defers everything (including config) to execution phase
-    // Some tasks do not work that way, this one would ALWAYS go with default (root git repo) in that case
-    // Probably should go through other stuff and use this strategy instead of <<
-
-    // Only if we asked for it (and not Core) do we actually configure the repo path and log that we're updating
-    if (enabled) {
-
-        // This is the Git repo we're actually using - projectDir is specific to the executing project, a.k.a. module whatever
-        // If not enabled the default is the root project's Git dir, which is a valid Git dir
-        // However in the case of Core we'd be setting ain invalid Git dir which causes fail - so this avoids that
-        repoPath = projectDir
-
-        println "Pulling updates via Git to " + getRepoDir() + ", if dependencies change run Gradle again (like 'gradlew idea')"
-    }
-}
-*/

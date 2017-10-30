@@ -1,18 +1,8 @@
 // Separate build file for structure heavy stuff like using Git to fetch other repos to embed within the project
 apply from: 'config/gradle/utility.gradle'
-apply from: 'config/gradle/ide.gradle'
 
 // Needed for extending the "clean" task to also delete custom stuff defined here like natives
 apply plugin: 'base'
-
-// For generating IntelliJ project files
-apply plugin: 'idea'
-
-// The root project should not be an eclipse project. It keeps eclipse (4.2) from finding the sub-projects.
-//apply plugin: 'eclipse'
-
-// Git plugin details at https://github.com/ajoberstar/gradle-git
-import org.ajoberstar.gradle.git.tasks.*
 
 // Dependencies needed for what our Gradle scripts themselves use. It cannot be included via an external Gradle file :-(
 buildscript {
@@ -130,24 +120,6 @@ task extractConfig (type: Copy) {
     into "$rootDir/$dirConfigMetrics"
 }
 
-// Helper that returns a list of all local Terasology module projects
-def terasologyModules() {
-    subprojects.findAll {it.parent.name == 'modules'}
-}
-
-// Helpers that do magic things after having dependencies attached below
-//task moduleClasses
-//task moduleJars
-/*
-// This magically makes everything work - without this the desired module projects returned have no tasks :-(
-gradle.projectsEvaluated {
-    // Note how "classes" may indirectly trigger "jar" for module dependencies of modules (module compile dependency)
-    moduleClasses.dependsOn(terasologyModules().classes)
-
-    // This makes it work for a full jar task
-    moduleJars.dependsOn(terasologyModules().jar)
-}
-*/
 // This is a TEMPORARY tweak to make "changing" dependencies always ('0') check for newer snapshots available
 // TODO: Remove this when versioning and promotion works fully, then we shouldn't care about snapshots normally anyway
 // For some reason this can stay here, yet had to be removed from everywhere else for Gradle 3.3
@@ -172,10 +144,15 @@ task protobufCompileLinux(type:Exec) {
     commandLine 'protobuf/compiler/protoc', '--proto_path=engine/src/main/protobuf', '--java_out', 'engine/src/main/java', "engine/src/main/protobuf/EntityData.proto", "engine/src/main/protobuf/NetMessage.proto"
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// General IDE customization                                                                                         //
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// These tasks are written in a way that makes them execute always, outside Gradle's regular workflow of calculating what needs to be done //
+// If they were written as Copy tasks and such they'd only work during the execution phase for a run that included them on the task graph  //
+// That's how it was done in the frequent 'gradlew idea' days where any change impacting project structure needed a rerun + IDE restart    //
+// With Gradle import / linking enabled instead we can use IDE integration to avoid a restart but don't have an explicit task to chain to  //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+// TODO: Convert the natives, config, and IDE setup to be tasks like this one
 task copyInMissingTemplates {
     description = "Copies in placeholders from the /templates dir to project root if not present yet"
     File gradlePropsFile = new File(rootDir, 'gradle.properties')
@@ -188,64 +165,19 @@ task copyInMissingTemplates {
     }
 }
 
-// Make sure the IDE prep includes extraction of natives
-ideaModule.dependsOn extractNatives
-ideaModule.dependsOn copyInMissingTemplates
-
-// For IntelliJ add a bunch of excluded directories
-idea {
-
-    // Exclude Eclipse dirs
-    // TODO: Update this as Eclipse bin dirs now generate in several deeper spots rather than at top-level
-    module.excludeDirs += file('bin')
-    module.excludeDirs += file('.settings')
-    // TODO: Add a single file exclude for facades/PC/Terasology.launch ?
-
-    // Exclude special dirs
-    module.excludeDirs += file('natives')
-    module.excludeDirs += file('protobuf')
-
-    // Exclude output dirs
-    module.excludeDirs += file('logs')
-    module.excludeDirs += file('saves')
-    module.excludeDirs += file('screenshots')
-    module.excludeDirs += file('terasology-server')
-    module.excludeDirs += file('terasology-2ndclient')
-
-    module.downloadSources = true
-
-    project {
-        // Set JDK
-        jdkName = '1.8'
-        wildcards -= '!?*.groovy'
-
-        ipr {
-            withXml { xmlProvider ->
-                // Apply a bunch of tweaks to IntelliJ config - all defined in ide.gradle
-                // Part reason for separate file was in case a module needs to define something it cannot do so in a project block
-                def iprNode = xmlProvider.asNode()
-                ideaActivateCheckstyle(iprNode)
-                ideaActivateCopyright(iprNode)
-                ideaActivateAnnotations(iprNode)
-                ideaActivateGit(iprNode)
-                ideaActivateGradle(iprNode)
-            }
-
-            // Sets sourceCompatibility within IntelliJ (without this root build having the Java plugin applied)
-            whenMerged {project ->
-                project.jdk.languageLevel = 'JDK_1_8'
-            }
-        }
-    }
-
-    // Tweaks to the .iws
-    workspace.iws.withXml { xmlProvider ->
-        def iwsNode = xmlProvider.asNode()
-        ideaMakeAutomatically(iwsNode)
-        ideaRunConfig(iwsNode)
-    }
+task prepareStuff {
+    dependsOn extractNatives
+    dependsOn extractConfig
 }
 
-cleanIdea.doLast {
-    new File('Terasology.iws').delete()
+afterEvaluate {
+    // This pops up way too early - after this particular file has been evaluated? Module config logging follows
+    // Really need a hook to trigger a task's execution phase on any project evaluation
+    // Difficulty: IntelliJ uses a special entry point (likely Eclipse as well) that just evaluates somehow
+    println 'After evaluate (TODO: Trying to find a good point to hook in a prep task)'
+}
+
+gradle.afterProject {
+    // This triggers *a lot* - after every project is evaluated. So similar to allProjects.afterEvaluate?
+    println 'After project (TODO: Trying to find a good point to hook in a prep task)'
 }

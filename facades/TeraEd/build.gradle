@@ -34,13 +34,3 @@ task editor(type:JavaExec) {
     classpath project(':engine').sourceSets.main.output.classesDir
     classpath project(':engine').configurations.runtime
 }
-
-// Prep an IntelliJ module for the facade
-idea {
-    module {
-        // Change around the output a bit
-        inheritOutputDirs = false
-        outputDir = file('build/classes')
-        testOutputDir = file('build/testClasses')
-    }
-}

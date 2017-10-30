@@ -8,7 +8,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        // Needed at this level for modules in Kotlin
+        // Needed at this level to support modules in Kotlin
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.6"
     }
 }

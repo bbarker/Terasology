@@ -59,21 +59,3 @@ jar {
     }
 }
 jar.finalizedBy cleanReflections
-
-// Prep an IntelliJ module for the Terasology module - yes, might want to read that twice :D
-idea {
-    module {
-        // Change around the output a bit
-        inheritOutputDirs = false
-        outputDir = file('build/classes')
-        testOutputDir = file('build/testClasses')
-        downloadSources = true
-    }
-}
-
-// For Eclipse just make sure the classpath is right
-eclipse {
-    classpath {
-        defaultOutputDir = file('build/classes')
-    }
-}
