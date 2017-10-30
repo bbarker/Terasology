@@ -43,11 +43,11 @@ configurations {
 
 dependencies {
     // Since the main compile and compileTest configs are defined in the generic module.gradle we can't modify them here - so extend instead
-    scalaConf group: 'org.scala-lang', name: 'scala-reflect', version: '2.11.7'
-    scalaConf group: 'org.scala-lang', name: 'scala-compiler', version: '2.11.7'
+    scalaConf group: 'org.scala-lang', name: 'scala-reflect', version: '2.11.11'
+    scalaConf group: 'org.scala-lang', name: 'scala-compiler', version: '2.11.11'
 
-    // To make this module bundle Kotlin's runtime jar we put it in a separate config by itself
-    scalaEmbedded group: 'org.scala-lang', name: 'scala-library', version: '2.11.7'
+    // To make this module bundle Scala's runtime jar we put it in a separate config by itself
+    scalaEmbedded group: 'org.scala-lang', name: 'scala-library', version: '2.11.11'
 }
 
 // Generate the module directory structure if missing (by declaring the task here we also get the language specific extras)
