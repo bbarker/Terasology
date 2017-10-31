@@ -114,6 +114,12 @@ dependencies {
     compile group: 'ec.util', name: 'MersenneTwister', version: '20'
     compile group: 'org.eaxy', name: 'eaxy', version: '0.1'
 
+    // telemetry
+    compile (group: 'com.snowplowanalytics', name: 'snowplow-java-tracker', version :'0.8.0'){
+        exclude group:'org.slf4j',module:'slf4j-simple'
+    }
+    compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '4.10'
+
     // Our developed libs
     compile group: 'org.terasology', name: 'gestalt-module', version: '5.1.2'
     compile group: 'org.terasology', name: 'gestalt-asset-core', version: '5.1.2'
