@@ -101,10 +101,12 @@ dependencies {
         }
 
         // This step resolves artifacts early, after which project config CANNOT be altered again!
-         //TODO: This is what causes the nested task slowdown, due to the resolve at config time issue
-        //configurations.compile.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
-        // TODO: This updated version seems to do the trick without a slowdown! Hunt down any other usage like the old one
-        configurations.compile.incoming.afterResolve { ResolvedArtifact artifact ->
+        //TODO: This is what causes the nested task slowdown, due to the resolve at config time issue
+        configurations.compile.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
+        // TODO: This updated version seems to do the trick without a slowdown!
+        // However, this exact variant causes an error on Gradle refresh within IntelliJ ... the testCompile doesn't? IntelliJ bug?
+        //configurations.compile.incoming.afterResolve { ResolvedArtifact artifact ->
+
             def id = artifact.moduleVersion.id
 
             // Check for any needed module dependencies on other modules that we need at runtime
@@ -146,7 +148,6 @@ dependencies {
         // TODO: parse and apply external lib dependencies if any are present
         // TODO: Consider / keep an eye on whether resolving artifacts early at this point causes any trouble (is only for logging)
         // This step resolves artifacts (both compile & testCompile) and prints out some interesting versions
-
         //configurations.testCompile.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
         configurations.testCompile.incoming.afterResolve { ResolvedArtifact artifact -> // Fixed version
             def id = artifact.moduleVersion.id
