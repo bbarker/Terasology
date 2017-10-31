@@ -59,11 +59,6 @@ def retrieveModule(String module, boolean recurse) {
         Grgit.clone dir: targetDir, uri: "https://github.com/$githubHome/${module}.git"
         modulesRetrieved << module
 
-        // TODO: Temporary until build.gradle gets removed from module directories (pending Cervator work)
-        File targetBuildGradle = new File(targetDir, 'build.gradle')
-        targetBuildGradle.delete()
-        targetBuildGradle << new File('templates/build.gradle').text
-
         File moduleManifest = new File(targetDir, 'module.txt')
         if (!moduleManifest.exists()) {
             def moduleText = new File("templates/module.txt").text
@@ -114,8 +109,7 @@ String[] readModuleDependencies(File targetModuleInfo) {
 }
 
 /**
- * Creates a new module with the given name and adds the necessary .gitignore,
- * build.gradle and module.txt files.
+ * Creates a new module with the given name and adds the necessary .gitignore and module.txt files.
  * @param name the name of the module to be created
  */
 def createModule(String name) {
@@ -133,12 +127,6 @@ def createModule(String name) {
     File gitignore = new File(targetDir, ".gitignore")
     def gitignoreText = new File("templates/.gitignore").text
     gitignore << gitignoreText
-
-    // Add build.gradle (temporary until it gets removed)
-    println "Creating build.gradle"
-    File buildGradle = new File(targetDir, "build.gradle")
-    def buildGradleText = new File("templates/build.gradle").text
-    buildGradle << buildGradleText
 
     // Add module.txt
     println "Creating module.txt"
