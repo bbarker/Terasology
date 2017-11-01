@@ -32,9 +32,11 @@ repositories {
         if (rootProject.hasProperty("alternativeResolutionRepo")) {
             // If the user supplies an alternative repo via gradle.properties then use that
             url alternativeResolutionRepo
+            println "common.gradle picked up a custom resolution repo: $alternativeResolutionRepo"
         } else {
             // Our default is the main virtual repo containing everything except repos for testing Artifactory itself
             url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
+            println "common.gradle is set to use the standard resolution (virtual-repo-live)"
         }
     }
 

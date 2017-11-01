@@ -2,6 +2,22 @@
 
 import groovy.json.JsonSlurper
 
+buildscript {
+    repositories {
+        // External libs - jcenter is Bintray and is supposed to be a superset of Maven Central, but do both just in case
+        jcenter()
+    }
+
+    dependencies {
+        // Artifactory plugin
+        classpath(group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: '4.0.0')
+
+        // Needed for caching reflected data during builds
+        classpath 'org.reflections:reflections:0.9.10'
+        classpath 'dom4j:dom4j:1.6.1'
+    }
+}
+
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -100,12 +116,13 @@ dependencies {
             }
         }
 
+
         // This step resolves artifacts early, after which project config CANNOT be altered again!
         //TODO: This is what causes the nested task slowdown, due to the resolve at config time issue
-        configurations.compile.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
+        //configurations.compile.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
         // TODO: This updated version seems to do the trick without a slowdown!
         // However, this exact variant causes an error on Gradle refresh within IntelliJ ... the testCompile doesn't? IntelliJ bug?
-        //configurations.compile.incoming.afterResolve { ResolvedArtifact artifact ->
+        configurations.compile.incoming.afterResolve { ResolvedArtifact artifact ->
 
             def id = artifact.moduleVersion.id
 
@@ -128,6 +145,9 @@ dependencies {
                 }
             }
         }
+
+
+
     } else {
         println "We're in a single-project non-Core module workspace (Jenkins) so will look elsewhere for dependencies"
 
@@ -156,6 +176,7 @@ dependencies {
                 println "*** $project.name remotely resolved $id.group - $id.name - version $id.version"
             }
         }
+
     }
 }
 

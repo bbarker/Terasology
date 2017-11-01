@@ -9,5 +9,6 @@ new File(rootDir, 'modules').eachDir { possibleSubprojectDir ->
         println "***WARNING*** Module $subprojectName has no module file, expecting corrupt directory, please fix!"
     } else {
         include subprojectName
+        println "Including $subprojectName as a valid module"
     }
 }

@@ -31,7 +31,7 @@ build/
 /override.cfg
 
 # Ignore IntelliJ - could use "/**/*.iml" to catch all .iml files, but that requires a somewhat recent Git version
-/out/
+out/
 modules/Core/Core.iml
 modules/CoreSampleGameplay/CoreSampleGameplay.iml
 modules/BuilderSampleGameplay/BuilderSampleGameplay.iml

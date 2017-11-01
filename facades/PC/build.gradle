@@ -121,59 +121,63 @@ task debug(type:JavaExec) {
     classpath project(':engine').configurations.runtime
 }
 
-// By delaying this task to doLast (the << bit) we don't get the headless server dir set up unless actually wanting it
+
 // TODO: This is not the Gradle Way. Needs more declared output-fu to determine up-to-date instead of the if
-task setupServerConfig() << {
+task setupServerConfig() {
     description "Parses parameters passed via Gradle and writes them to the local run-from-source server dir's config.cfg"
 
-    def json = new JsonBuilder()
+    doLast {
+        def json = new JsonBuilder()
 
-    def serverRoot = rootProject.file(localServerDataPath);
-    def config = new File(serverRoot, 'config.cfg')
+        def serverRoot = rootProject.file(localServerDataPath);
+        def config = new File(serverRoot, 'config.cfg')
 
-    if (!config.exists()) {
+        if (!config.exists()) {
 
-        serverRoot.mkdir()
-        logger.lifecycle("Creating config file $config")
+            serverRoot.mkdir()
+            logger.lifecycle("Creating config file $config")
 
-        json {
-            worldGeneration {
-                if (project.hasProperty('seed')) {
-                    logger.lifecycle("  Seed value: $seed");
-                    defaultSeed seed
+            json {
+                worldGeneration {
+                    if (project.hasProperty('seed')) {
+                        logger.lifecycle("  Seed value: $seed");
+                        defaultSeed seed
+                    }
+                    if (project.hasProperty('worldGen')) {
+                        logger.lifecycle("  World Generator: $worldGen");
+                        defaultGenerator worldGen
+                    }
                 }
-                if (project.hasProperty('worldGen')) {
-                    logger.lifecycle("  World Generator: $worldGen");
-                    defaultGenerator worldGen
+                defaultModSelection {
+                    if (project.hasProperty('extraModules')) {
+                        logger.lifecycle("  Enabling modules: $extraModules");
+                        modules extraModules.tokenize(" ,")
+                    }
                 }
             }
-            defaultModSelection {
-                if (project.hasProperty('extraModules')) {
-                    logger.lifecycle("  Enabling modules: $extraModules");
-                    modules extraModules.tokenize(" ,")
-                }
-            }
+            config.text = json.toPrettyString()
         }
-        config.text = json.toPrettyString()
     }
 }
 
 // TODO: Seems to always be up to date so no modules get copied
-task setupServerModules(type: Sync) << {
+task setupServerModules(type: Sync) {
     description 'Parses "extraModules" - a comma-separated list of modules and puts them into ' + localServerDataPath
 
-    if (project.hasProperty('extraModules')) {
-        // Grab modules from Artifactory - cheats by declaring them as dependencies
-        extraModules.tokenize(' ,').each { String module ->
-            println "Extra module: " + module
-            dependencies {
-                modules group: 'org.terasology.modules', name: module, version: '+', changing: 'true'
+    doLast {
+        if (project.hasProperty('extraModules')) {
+            // Grab modules from Artifactory - cheats by declaring them as dependencies
+            extraModules.tokenize(' ,').each { String module ->
+                println "Extra module: " + module
+                dependencies {
+                    modules group: 'org.terasology.modules', name: module, version: '+', changing: 'true'
+                }
             }
         }
-    }
 
-    from(configurations.modules)
-    into(new File(rootProject.file(localServerDataPath), "modules"))
+        from(configurations.modules)
+        into(new File(rootProject.file(localServerDataPath), "modules"))
+    }
 }
 
 // TODO: Make a task to reset server / game data

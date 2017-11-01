@@ -13,6 +13,7 @@ repositories {
     // MovingBlocks Artifactory instance for libs not readily available elsewhere plus our own libs
     maven {
         url "http://artifactory.terasology.org/artifactory/repo"
+        println "facades.gradle (the template? huh) was reached with standard 'repo' for resolution"
     }
 }
 

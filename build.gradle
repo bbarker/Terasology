@@ -4,6 +4,8 @@ apply from: 'config/gradle/utility.gradle'
 // Needed for extending the "clean" task to also delete custom stuff defined here like natives
 apply plugin: 'base'
 
+apply plugin: 'project-report'
+
 // Dependencies needed for what our Gradle scripts themselves use. It cannot be included via an external Gradle file :-(
 buildscript {
     repositories {
@@ -48,7 +50,12 @@ repositories {
 
     // MovingBlocks Artifactory instance for libs not readily available elsewhere plus our own libs
     maven {
-        url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
+        if (rootProject.hasProperty("artifactoryResolveRepo")) {
+            url "http://artifactory.terasology.org/artifactory/$artifactoryResolveRepo"
+            println "Changing root RESOLVE repo to $artifactoryResolveRepo"
+        } else {
+            url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
+        }
     }
 }
 
@@ -175,10 +182,10 @@ afterEvaluate {
     // This pops up way too early - after this particular file has been evaluated? Module config logging follows
     // Really need a hook to trigger a task's execution phase on any project evaluation
     // Difficulty: IntelliJ uses a special entry point (likely Eclipse as well) that just evaluates somehow
-    println 'After evaluate (TODO: Trying to find a good point to hook in a prep task)'
+    //println 'After evaluate (TODO: Trying to find a good point to hook in a prep task)'
 }
 
 gradle.afterProject {
     // This triggers *a lot* - after every project is evaluated. So similar to allProjects.afterEvaluate?
-    println 'After project (TODO: Trying to find a good point to hook in a prep task)'
+    //println 'After project (TODO: Trying to find a good point to hook in a prep task)'
 }
