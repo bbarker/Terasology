@@ -90,7 +90,7 @@ entityDump.txt
 
 # Ignore stuff we extract for use with Terasology
 /natives/
-config/metrics/
+gradle/metrics/
 
 
 # Ignore weird stuff that might be obsolete

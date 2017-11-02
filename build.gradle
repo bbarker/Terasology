@@ -33,7 +33,7 @@ assert org.gradle.api.JavaVersion.current().isJava8Compatible()
 // Declare "extra properties" (variables) for the project (and subs) - a Gradle thing that makes them special.
 ext {
     dirNatives = 'natives'
-    dirConfigMetrics = 'config/metrics'
+    dirConfigMetrics = 'gradle/metrics'
     templatesDir = 'templates'
 
     // Lib dir for use in manifest entries etc (like in :engine). A separate "libsDir" exists, auto-created by Gradle
