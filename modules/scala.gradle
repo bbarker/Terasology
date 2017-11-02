@@ -2,7 +2,7 @@
 apply plugin: "scala"
 
 // Grab all the common stuff like plugins to use, artifact repositories, code analysis config, etc
-apply from: "$rootDir/config/gradle/artifactory.gradle"
+apply from: "$rootDir/gradle/artifactory.gradle"
 
 // Grab the module specific build logic that's language agnostic
 apply from: "../module.gradle"
