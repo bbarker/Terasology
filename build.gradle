@@ -183,7 +183,7 @@ task harnessTheBuild (type: Zip) {
     dependsOn extractConfig
 
     from ('modules') {
-        include '*.gradle'
+        include 'build.gradle'
     }
 
     from ('gradle') {

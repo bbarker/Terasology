@@ -4,7 +4,7 @@
 apply from: "$rootDir/gradle/artifactory.gradle"
 
 // Grab the common stuff specific to modules builds (allows it to live in a module specific but language agnostic file)
-apply from: "../module.gradle"
+apply from: "$rootDir/gradle/module.gradle"
 
 // Dependencies needed for what our Gradle scripts themselves use. It cannot be included via an external Gradle file :-(
 buildscript {

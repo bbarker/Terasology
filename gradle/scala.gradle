@@ -5,7 +5,7 @@ apply plugin: "scala"
 apply from: "$rootDir/gradle/artifactory.gradle"
 
 // Grab the module specific build logic that's language agnostic
-apply from: "../module.gradle"
+apply from: "$rootDir/gradle/module.gradle"
 
 // Dependencies needed for what our Gradle scripts themselves use. It cannot be included via an external Gradle file :-(
 buildscript {
