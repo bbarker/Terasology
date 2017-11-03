@@ -17,7 +17,7 @@ ext {
     // General props
     mainClassName = 'org.terasology.engine.Terasology'
     subDirLibs = 'libs'
-    templatesDir = new File(rootDir, 'templates')
+    templatesDir = new File("$rootDir/gradle/templates")
     rootDirDist = new File(rootDir, 'build/distributions')
 
     // Read environment variables, including variables passed by jenkins continuous integration server
@@ -269,6 +269,7 @@ task distModules (type: Sync) {
     }
     */
 }
+
 task distPCZip (type: Zip) {
     dependsOn distApp
     dependsOn distModules

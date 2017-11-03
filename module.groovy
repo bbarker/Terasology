@@ -61,7 +61,7 @@ def retrieveModule(String module, boolean recurse) {
 
         File moduleManifest = new File(targetDir, 'module.txt')
         if (!moduleManifest.exists()) {
-            def moduleText = new File("templates/module.txt").text
+            def moduleText = new File("gradle/templates/module.txt").text
             moduleManifest << moduleText.replaceAll('MODULENAME', module)
             println "WARNING: Module $module did not have a module.txt! One was created, please review and submit to GitHub"
         }
@@ -125,13 +125,13 @@ def createModule(String name) {
     // Add gitignore
     println "Creating .gitignore"
     File gitignore = new File(targetDir, ".gitignore")
-    def gitignoreText = new File("templates/.gitignore").text
+    def gitignoreText = new File("gradle/templates/.gitignore").text
     gitignore << gitignoreText
 
     // Add module.txt
     println "Creating module.txt"
     File moduleManifest = new File(targetDir, "module.txt")
-    def moduleText = new File("templates/module.txt").text
+    def moduleText = new File("gradle/templates/module.txt").text
     moduleManifest << moduleText.replaceAll('MODULENAME', name)
 
     // Initialize git
@@ -191,7 +191,7 @@ def printUsage() {
     println "After changing modules available in your workspace rerun 'gradlew idea' and/or refresh your IDE"
     println ""
     println "For advanced usage see project documentation. For instance you can provide an alternative GitHub home"
-    println "A gradle.properties file (one exists under '/templates' in an engine workspace) can provide such overrides"
+    println "A gradle.properties file (one exists under '/gradle/templates' in an engine workspace) can provide such overrides"
     println ""
 }
 

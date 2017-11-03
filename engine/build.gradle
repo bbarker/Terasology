@@ -23,7 +23,8 @@ ext {
     // Read environment variables, including variables passed by jenkins continuous integration server
     env = System.getenv()
 
-    templatesDir = new File(rootDir, 'templates')
+    // TODO: Use project.file() instead? Good practice / warning. Can be used as plain file(). But may need one-arg approach?
+    templatesDir = new File(rootDir, 'gradle/templates')
 
     // Stuff for our automatic version file setup
     startDateTimeString = dateTimeFormat.format(new Date())
