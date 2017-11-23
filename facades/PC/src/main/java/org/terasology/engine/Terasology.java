@@ -49,6 +49,9 @@ import org.terasology.splash.overlay.RectOverlay;
 import org.terasology.splash.overlay.TextOverlay;
 import org.terasology.splash.overlay.TriggerImageOverlay;
 
+import java.net.URL;
+import java.net.URLClassLoader;
+
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -114,6 +117,14 @@ public final class Terasology {
     }
 
     public static void main(String[] args) {
+
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+
+        URL[] urls = ((URLClassLoader)cl).getURLs();
+
+        for(URL url: urls){
+        	System.out.println("DEBUG classpath: " + url.getFile());
+        }
 
         handlePrintUsageRequest(args);
         handleLaunchArguments(args);

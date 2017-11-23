@@ -85,6 +85,12 @@ configurations {
 // Primary dependencies definition
 dependencies {
 
+    compile group: 'org.scala-lang', name: 'scala-reflect', version: '2.11.11'
+    compile group: 'org.scala-lang', name: 'scala-compiler', version: '2.11.11'
+
+    // To make this module bundle Scala's runtime jar we put it in a separate config by itself
+    compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.11'
+
     // Storage and networking
     compile group: 'com.google.guava', name: 'guava', version: '19.0'
     compile group: 'com.google.code.gson', name: 'gson', version: '2.6.2'
